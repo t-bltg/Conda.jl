@@ -329,6 +329,15 @@ function exists(package::AbstractString, env::Environment=ROOTENV)
     end
 end
 
+function config_get(key, default=nothing, env::Environment=ROOTENV)
+    dict = parseconda(`config --get $key --file $(conda_rc(env))`, env)["get"]
+    get(dict, default)
+end
+
+function config_set(key, value, env::Environment=ROOTENV)
+    runconda(`config --set $key $value --file $(conda_rc(env))`, env)
+end
+
 "Get the list of channels used to search packages"
 function channels(env::Environment=ROOTENV)
     ret=parseconda(`config --get channels --file $(conda_rc(env))`, env)
@@ -418,7 +427,7 @@ Sets the `pip_interop_enabled` value to bool.
 If `true` then the conda solver is allowed to interact with non-conda-installed python packages.
 """
 function pip_interop(bool::Bool, env::Environment=ROOTENV)
-    runconda(`config --set pip_interop_enabled $bool --file $(conda_rc(env))`, env)
+    config_set("pip_interop_enabled", bool)
 end
 
 """
@@ -427,8 +436,7 @@ end
 Gets the `pip_interop_enabled` value from the conda config.
 """
 function pip_interop(env::Environment=ROOTENV)
-    dict = parseconda(`config --get pip_interop_enabled --file $(conda_rc(env))`, env)["get"]
-    get(dict, "pip_interop_enabled", false)
+    config_get("pip_interop_enabled", false, env)
 end
 
 function check_pip_interop(env::Environment=ROOTENV)
